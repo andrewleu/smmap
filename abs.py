@@ -28,6 +28,10 @@ regform=form.Form(
 okform=form.Form(
    form.Button("OK",type="OK",description="OK")
 )
+passform=form.Form(
+   form.Password("Password",descrition="Password"),
+   form.Button("submit",type="summit",description="OK")
+)
 content_type={'.movie'	: 'video/x-sgi-movie', 
   '.wvx'	: 'video/x-ms-wvx', 
   '.wmx'	: 'video/x-ms-wmx',
@@ -55,13 +59,22 @@ content_type={'.movie'	: 'video/x-sgi-movie',
 Str='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
 class bg:
  def GET(self):
-   f=regform()
-   return render.register("Input in the textbox\n\n", f)
+   f=passform()
+   return render.register("<p>Input in the password</p>", f)
  def POST(self):
-   input=web.input() ; print input
+   input=web.input() ; #print input
+   passw='absaccn'
+   if 'Password' in input :
+      if input.Password!=passw :
+         f=passform()
+         return render.register("<p>Incorrect password</p>",f)
+      else :
+         f=regform()
+         return render.register("<p>Input in the textbox</p>", f)
    if len(input.items())==1 :
       f=regform()
-      return render.register("Input in the textbox\n\n", f)
+      return render.register("<p>Input in the textbox</p>", f)
+   
    filename=input.Filename;serveraddr=input.server;pname=input.Program;
    rand=string.join(random.sample(Str,10))
    rand=rand.replace(' ','')
@@ -69,9 +82,9 @@ class bg:
    suffix='.'+suffix[len(suffix)-1]
    try:
       conttype= content_type[suffix]
-   except e:
-      r=okform()
-      return render.register("File type error\n",f)
+   except KeyError:
+      f=okform()
+      return render.register("<p>File type error</p>",f)
    code=filename+'||'+serveraddr+'||'+rand;
    key='absac' 
    key_len=len(key)
@@ -93,8 +106,12 @@ class bg:
      print "MySQL Error [%d]: %s" % (e.args[0], e.args[1])
    cur_tab.execute("commit")
    cur_tab.close()
+   content="<p>"+u"明文：  "+code.replace("_","")+"</p>";
+   content=content+"<p>"+u"密文： "+url_code+"</p>"
+   content=content+"<p>"+u"随机字符串： "+rand+"</p>"
+   print content
    f=okform()
-   return render.register("Accepted\n\n",f)
+   return render.register(content,f)
 class res:
    def GET(self,name) :
      BUF=65535

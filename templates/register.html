@@ -1,6 +1,9 @@
-$def with(form)
-
+$def with(content, form)
+<head>
+ <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+</head>
 <h1>Register</h1>
+  $:content
 <form method="POST">
     $:form.render()
 </form>
