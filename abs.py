@@ -12,7 +12,7 @@ from datetime import datetime
 urls= (
  "/", "index",
  "/res/(.+)", "res",
- "/bg/","bg"
+ "/bgnd/","bg"
  )
 from web import form
 reload(sys)
@@ -24,6 +24,9 @@ regform=form.Form(
    form.Textbox("Filename",description="File name"),
    form.Textbox("server",description="Server address"),
    form.Button("submit",type="summit",description="upload")
+)
+okform=form.Form(
+   form.Button("OK",type="OK",description="OK")
 )
 content_type={'.movie'	: 'video/x-sgi-movie', 
   '.wvx'	: 'video/x-ms-wvx', 
@@ -53,10 +56,13 @@ Str='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
 class bg:
  def GET(self):
    f=regform()
-   return render.register(f)
+   return render.register("Input in the textbox\n\n", f)
  def POST(self):
-   input=web.input()
-   filename=input.Filename;serveraddr=input.server;pname=input.Program;print pname
+   input=web.input() ; print input
+   if len(input.items())==1 :
+      f=regform()
+      return render.register("Input in the textbox\n\n", f)
+   filename=input.Filename;serveraddr=input.server;pname=input.Program;
    rand=string.join(random.sample(Str,10))
    rand=rand.replace(' ','')
    suffix=filename.split('.')
@@ -64,7 +70,8 @@ class bg:
    try:
       conttype= content_type[suffix]
    except e:
-      return "File type error"
+      r=okform()
+      return render.register("File type error\n",f)
    code=filename+'||'+serveraddr+'||'+rand;
    key='absac' 
    key_len=len(key)
@@ -86,8 +93,8 @@ class bg:
      print "MySQL Error [%d]: %s" % (e.args[0], e.args[1])
    cur_tab.execute("commit")
    cur_tab.close()
-   f=regform()
-   return render.register(f)
+   f=okform()
+   return render.register("Accepted\n\n",f)
 class res:
    def GET(self,name) :
      BUF=65535
