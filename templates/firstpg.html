@@ -1,0 +1,16 @@
+$def with(lines)
+<head> 
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <title>节目列表</title> 
+  <link rel="SHORTCUT ICON" href="/static/favicon.ico"/> 
+</head>
+<body> 
+<h1>节目列表</h1>
+<ul>
+	$for line in lines :
+          $code:
+	    lk="/res/"+line[0]+"&"+line[1]
+          <li><a href="$:lk"> $line[2] </a></li>
+</ul>
+</body> 
+
