@@ -54,7 +54,6 @@ content_type={'.movie'	: 'video/x-sgi-movie',
   '.mp2v'	: 'video/mpeg',
   '.mpv2'	: 'video/mpeg',
   '.avi'	: 'video/avi',
-  '.mkv'	: 'video/x-matroska'
 }
 Str='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
 class bg:
@@ -62,8 +61,9 @@ class bg:
    f=passform()
    return render.register("<p>Input in the password</p>", f)
  def POST(self):
+   global tab
    input=web.input() ; #print input
-   passw='absaccn'
+   passw='smmap'
    if 'Password' in input :
       if input.Password!=passw :
          f=passform()
@@ -74,7 +74,6 @@ class bg:
    if len(input.items())==1 :
       f=regform()
       return render.register("<p>Input in the textbox</p>", f)
-   
    filename=input.Filename;serveraddr=input.server;pname=input.Program;
    rand=string.join(random.sample(Str,10))
    rand=rand.replace(' ','')
@@ -86,7 +85,7 @@ class bg:
       f=okform()
       return render.register("<p>File type error</p>",f)
    code=filename+'||'+serveraddr+'||'+rand;
-   key='absac' 
+   key='smmap' 
    key_len=len(key)
    for i in range(key_len, 16):
       key=key+'_'
@@ -96,7 +95,13 @@ class bg:
    obj=AES.new(key,AES.MODE_CBC,'')
    encrypt_code=obj.encrypt(code);
    url_code=base64.urlsafe_b64encode(encrypt_code);
-   cur_tab=tab.cursor();cur_tab.execute("set names 'utf8'")
+   try :
+     cur_tab=tab.cursor();cur_tab.execute("set names 'utf8'")
+   except mysql.Error, e:
+     print "MySQL Error [%d]: %s" % (e.args[0], e.args[1])
+     if e.args[0]== 2006 :
+       this.tab=mysql.connect('127.0.0.1','root','rtnet','abs',charset='utf8')
+     raise web.seeother("/bgnd") 
    try: 
      cur_tab.execute("insert filelist(server,name,filename,mediatype,rand,\
      encryptstr,date) value('%s','%s','%s','%s','%s','%s','%s')" \
@@ -114,8 +119,15 @@ class bg:
    return render.register(content,f)
 class res:
    def GET(self,name) :
+     global tab
      BUF=65535
-     cur_tab=tab.cursor();cur_tab.execute("set names 'utf8'")
+     try:
+       cur_tab=tab.cursor();cur_tab.execute("set names 'utf8'")
+     except mysql.Error, e:
+        print "MySQL Error [%d]: %s" % (e.args[0], e.args[1])
+        if e.args[0]== 2006 :
+             tab=mysql.connect('127.0.0.1','root','rtnet','abs',charset='utf8')
+        raise web.seeother("/")
      name=name.split("&"); lenerror=0;queryerror=0
      if len(name)==2 :
         query=cur_tab.execute("select filename,mediatype from filelist where rand='%s' and encryptstr='%s'" % (name[0], name[1]))
@@ -135,16 +147,30 @@ class res:
              else :
                break
            f.close();
-           raise web.redirect("/")
+           raise web.seeother("/")
         else :
            cur_tab.execute("commit")
            cur_tab.close()
-           yield "URL parsing error"
+           f=okform()
+           yield render.register("<p>URL parsing error.</p>",f)
      else :
-       yield "URL error"
+       f=okform()
+       yield render.register( "<p>URL error</p>",f)
+   def POST(self):
+       raise web.seeother("/")
 class index:
     def GET(self):
-      cur_tab=tab.cursor();cur_tab.execute("set names 'utf8'")
+      global tab
+      try:
+        cur_tab=tab.cursor();cur_tab.execute("set names 'utf8'")
+      except mysql.Error, e:
+        print "MySQL Error [%d]: %s" % (e.args[0], e.args[1])
+        if e.args[0]==2006 :
+          tab=mysql.connect('127.0.0.1','root','rtnet','abs',charset='utf8')
+          raise web.seeother("/")
+        else :
+          f=okform()
+          return render.register("<p>Internal Error, Try later</p>",f)
       cur_tab.execute("select rand, encryptstr,name from filelist")
       lines=cur_tab.fetchall();cur_tab.execute("commit");cur_tab.close();
       return render.firstpg(lines)
