@@ -156,7 +156,7 @@ class res:
      else :
        f=okform()
        yield render.register( "<p>URL error</p>",f)
-   def POST(self):
+   def POST(self,path):
        raise web.seeother("/")
 class index:
     def GET(self):
