@@ -9,10 +9,12 @@ from Crypto.Cipher import AES
 import urllib, urllib2
 import MySQLdb as mysql
 from datetime import datetime
+import time
 urls= (
  "/", "index",
  "/res/(.+)", "res",
- "/bgnd/","bg"
+ "/bgnd/","bg",
+ "/poor", "poor"
  )
 from web import form
 reload(sys)
@@ -83,7 +85,7 @@ class bg:
       conttype= content_type[suffix]
    except KeyError:
       f=okform()
-      return render.register("<p>File type error</p>",f)
+      return render.warning("<p>File type error</p>",f)
    code=filename+'||'+serveraddr+'||'+rand;
    key='smmap' 
    key_len=len(key)
@@ -152,10 +154,10 @@ class res:
            cur_tab.execute("commit")
            cur_tab.close()
            f=okform()
-           yield render.register("<p>URL parsing error.</p>",f)
+           yield render.warning("<p>URL parsing error.</p>",f)
      else :
        f=okform()
-       yield render.register( "<p>URL error</p>",f)
+       yield render.warning( "<p>URL error</p>",f)
    def POST(self,path):
        raise web.seeother("/")
 class index:
@@ -174,6 +176,23 @@ class index:
       cur_tab.execute("select rand, encryptstr,name from filelist")
       lines=cur_tab.fetchall();cur_tab.execute("commit");cur_tab.close();
       return render.firstpg(lines)
+class poor:
+   def GET(self) :
+     BUF=65535
+     filepath="/opt/buck.mp4"
+     web.header('Content-Type', 'video/mp4')
+     web.header('Transfer-Encoding','chunked')
+     f=open(filepath,'r')
+     while True:
+       c=f.read(BUF)
+       if c : 
+         if random.randint(1,20)!=8 :
+            yield c
+         else :
+            time.sleep(1)
+            yield c
+       else :
+          break
 if __name__ == "__main__":
     app = web.application(urls, globals())
     try:
