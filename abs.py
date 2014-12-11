@@ -14,11 +14,12 @@ urls= (
  "/", "index",
  "/res/(.+)", "res",
  "/bgnd/","bg",
- "/poor", "poor"
+ "/poor", "poor",
+ "/auth", "auth"
  )
 from web import form
 reload(sys)
-sys.setdefaultencoding("utf-8")
+sys.setdefaultencoding("utf8")
 tab=mysql.connect('127.0.0.1','root','rtnet','abs',charset='utf8')
 render=web.template.render('templates')
 regform=form.Form(
@@ -29,6 +30,11 @@ regform=form.Form(
 )
 okform=form.Form(
    form.Button("OK",type="OK",description="OK")
+)
+authform=form.Form (
+    form.Textbox("URL", description="输入URL"),
+   form.Password("Key",id="加密密钥"),
+   form.Button("OK",type="summit",description="OK")
 )
 passform=form.Form(
    form.Password("Password",descrition="Password"),
@@ -58,12 +64,50 @@ content_type={'.movie'	: 'video/x-sgi-movie',
   '.avi'	: 'video/avi',
 }
 Str='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+key='smmap'
+class auth :
+   def GET(self):
+     f=authform()
+     return render.warning("URL验证","",f)
+   def POST(self) :
+     input=web.input();print input
+     if "Key" not in input :
+        raise web.seeother("/auth");
+     if "URL" not in input :
+        raise web.seeother("/auth")
+     inputurl=input.URL;passwd=input.Key
+     tag =inputurl.split("/");
+     tag=tag[len(tag)-1]
+     tag=tag.split("&")
+     if len(tag)!=2 :
+       f=okform()
+       return render.warning("Input Error","" ,f)
+     rand=tag[0];encryptstr=tag[1];print rand;print encryptstr
+     key_len=len(passwd)
+     for i in range(key_len%16, 16):
+        passwd=passwd+'_'
+     obj=AES.new(passwd,AES.MODE_CBC,'')
+     try:
+       code=obj.decrypt(base64.urlsafe_b64decode(encryptstr.encode()))
+     except:
+        f=okform()
+        return render.warning("验证不正确","",f)
+     codeparts=code.split("||");print code
+     if len(codeparts)==3 :
+        if codeparts[2].replace("_","")==rand:
+           content="<p>"+u"明文：  "+code.rstrip("_")+"</p>";
+           content=content+"<p>"+u"密文： "+tag[1]+"</p>"
+           content=content+"<p>"+u"随机字符串： "+rand+"</p>"
+           f=okform()
+           return render.warning("验证正确",content,f)
+     f=okform()
+     return render.warning("验证不正确","",f) 
 class bg:
  def GET(self):
    f=passform()
    return render.register("<p>Input in the password</p>", f)
  def POST(self):
-   global tab
+   global tab, key
    input=web.input() ; #print input
    passw='smmap'
    if 'Password' in input :
@@ -85,16 +129,16 @@ class bg:
       conttype= content_type[suffix]
    except KeyError:
       f=okform()
-      return render.warning("<p>File type error</p>",f)
+      return render.warning("Warning","<p>File type error</p>",f)
    code=filename+'||'+serveraddr+'||'+rand;
-   key='smmap' 
-   key_len=len(key)
-   for i in range(key_len, 16):
-      key=key+'_'
+   key_len=len(key);enkey=key;print key
+   for i in range(key_len%16, 16):
+      enkey=enkey+'_'
+   print enkey
    content_len=len(code)%16
    for i in range(content_len, 16):
       code=code+'_'
-   obj=AES.new(key,AES.MODE_CBC,'')
+   obj=AES.new(enkey,AES.MODE_CBC,'')
    encrypt_code=obj.encrypt(code);
    url_code=base64.urlsafe_b64encode(encrypt_code);
    try :
@@ -154,10 +198,10 @@ class res:
            cur_tab.execute("commit")
            cur_tab.close()
            f=okform()
-           yield render.warning("<p>URL parsing error.</p>",f)
+           yield render.warning("Warning","<p>URL parsing error.</p>",f)
      else :
        f=okform()
-       yield render.warning( "<p>URL error</p>",f)
+       yield render.warning("Warning", "<p>URL error</p>",f)
    def POST(self,path):
        raise web.seeother("/")
 class index:
