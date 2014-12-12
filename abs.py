@@ -32,7 +32,7 @@ okform=form.Form(
    form.Button("OK",type="OK",description="OK")
 )
 authform=form.Form (
-    form.Textbox("URL", description="输入URL"),
+   form.Textbox("URL", description="输入URL"),
    form.Password("Key",id="加密密钥"),
    form.Button("OK",type="summit",description="OK")
 )
@@ -142,21 +142,20 @@ class bg:
    encrypt_code=obj.encrypt(code);
    url_code=base64.urlsafe_b64encode(encrypt_code);
    try :
+     tab=mysql.connect('127.0.0.1','root','rtnet','abs',charset='utf8')
      cur_tab=tab.cursor();cur_tab.execute("set names 'utf8'")
    except mysql.Error, e:
      print "MySQL Error [%d]: %s" % (e.args[0], e.args[1])
-     if e.args[0]== 2006 :
-       this.tab=mysql.connect('127.0.0.1','root','rtnet','abs',charset='utf8')
-     raise web.seeother("/bgnd") 
+     tab.close();raise web.seeother("/bgnd") 
    try: 
      cur_tab.execute("insert filelist(server,name,filename,mediatype,rand,\
      encryptstr,date) value('%s','%s','%s','%s','%s','%s','%s')" \
      %(serveraddr,pname, filename,conttype,rand,url_code, str(datetime.now())))
    except mysql.Error, e:
-     exception=1
      print "MySQL Error [%d]: %s" % (e.args[0], e.args[1])
    cur_tab.execute("commit")
    cur_tab.close()
+   tab.close()
    content="<p>"+u"明文：  "+code.replace("_","")+"</p>";
    content=content+"<p>"+u"密文： "+url_code+"</p>"
    content=content+"<p>"+u"随机字符串： "+rand+"</p>"
