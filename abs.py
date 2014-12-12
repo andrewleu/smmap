@@ -84,15 +84,18 @@ class auth :
        return render.warning("Input Error","" ,f)
      rand=tag[0];encryptstr=tag[1];print rand;print encryptstr
      key_len=len(passwd)
-     for i in range(key_len%16, 16):
-        passwd=passwd+'_'
+     if key_len>=16 :
+        passwd=passwd[0:16]
+     else:
+       for i in range(key_len%16, 16):
+         passwd=passwd+'_'
      obj=AES.new(passwd,AES.MODE_CBC,'')
      try:
        code=obj.decrypt(base64.urlsafe_b64decode(encryptstr.encode()))
      except:
         f=okform()
         return render.warning("验证不正确","",f)
-     codeparts=code.split("||");print code
+     codeparts=code.split("||");
      if len(codeparts)==3 :
         if codeparts[2].replace("_","")==rand:
            content="<p>"+u"明文：  "+code.rstrip("_")+"</p>";
@@ -107,7 +110,6 @@ class bg:
    f=passform()
    return render.register("<p>Input in the password</p>", f)
  def POST(self):
-   global tab, key
    input=web.input() ; #print input
    passw='smmap'
    if 'Password' in input :
@@ -131,10 +133,13 @@ class bg:
       f=okform()
       return render.warning("Warning","<p>File type error</p>",f)
    code=filename+'||'+serveraddr+'||'+rand;
-   key_len=len(key);enkey=key;print key
-   for i in range(key_len%16, 16):
-      enkey=enkey+'_'
-   print enkey
+   key_len=len(key);
+   if key_len>=16 :
+      enkey=key[0:16]
+   else:
+      enkey=key;
+      for i in range(key_len%16, 16):
+         enkey=enkey+'_'
    content_len=len(code)%16
    for i in range(content_len, 16):
       code=code+'_'
