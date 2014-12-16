@@ -1,8 +1,8 @@
-$def with(content, form)
+$def with(title,content, form)
 <head>
  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 </head>
-<h1>Warning</h1>
+<h1>$title</h1>
   $:content
 <form method="POST">
     $:form.render()

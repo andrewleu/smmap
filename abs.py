@@ -23,9 +23,9 @@ sys.setdefaultencoding("utf8")
 tab=mysql.connect('127.0.0.1','root','rtnet','abs',charset='utf8')
 render=web.template.render('templates')
 regform=form.Form(
-   form.Textbox("Program", description="Program name"),
-   form.Textbox("Filename",description="File name"),
-   form.Textbox("server",description="Server address"),
+   form.Textbox("Pragram", description="片名"),
+   form.Textbox("Filename",description="文件名"),
+   form.Textbox("server",description="服务器地址"),
    form.Button("submit",type="summit",description="upload")
 )
 okform=form.Form(
@@ -108,7 +108,7 @@ class auth :
 class bg:
  def GET(self):
    f=passform()
-   return render.register("<p>Input in the password</p>", f)
+   return render.register("<p>按项目填写</p>", f)
  def POST(self):
    input=web.input() ; #print input
    passw='smmap'
@@ -118,7 +118,7 @@ class bg:
          return render.register("<p>Incorrect password</p>",f)
       else :
          f=regform()
-         return render.register("<p>Input in the textbox</p>", f)
+         return render.register("<p>按项目填写</p>", f)
    if len(input.items())==1 :
       f=regform()
       return render.register("<p>Input in the textbox</p>", f)
@@ -188,7 +188,7 @@ class res:
            web.header('Content-Type', result[1])
            web.header('Transfer-Encoding','chunked')
            f=open(filepath,'r')
-           cur_tab.execute("commit")
+           #cur_tab.execute("commit")
            cur_tab.close()
            while True:
              c=f.read(BUF)
@@ -199,7 +199,7 @@ class res:
            f.close();
            raise web.seeother("/")
         else :
-           cur_tab.execute("commit")
+           #cur_tab.execute("commit")
            cur_tab.close()
            f=okform()
            yield render.warning("Warning","<p>URL parsing error.</p>",f)
@@ -222,7 +222,8 @@ class index:
           f=okform()
           return render.register("<p>Internal Error, Try later</p>",f)
       cur_tab.execute("select rand, encryptstr,name from filelist")
-      lines=cur_tab.fetchall();cur_tab.execute("commit");cur_tab.close();
+      lines=cur_tab.fetchall();#cur_tab.execute("commit");
+      cur_tab.close();
       return render.firstpg(lines)
 class poor:
    def GET(self) :
