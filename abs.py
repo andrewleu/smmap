@@ -23,7 +23,7 @@ sys.setdefaultencoding("utf8")
 tab=mysql.connect('127.0.0.1','root','rtnet','abs',charset='utf8')
 render=web.template.render('templates')
 regform=form.Form(
-   form.Textbox("Pragram", description="片名"),
+   form.Textbox("Program", description="片名"),
    form.Textbox("Filename",description="文件名"),
    form.Textbox("server",description="服务器地址"),
    form.Button("submit",type="summit",description="upload")
