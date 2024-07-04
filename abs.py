@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-  
+# 刘述个人Github项目，使用Webpy和sqlite数据库
 import web
 import os
 import string
